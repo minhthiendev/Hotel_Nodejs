@@ -18,19 +18,19 @@ Image.create = (newListImage, result) => {
     });
 };
 
-Image.findOne = (filed, value, result) => {
-    sql.query(`SELECT * FROM images WHERE  ${filed} = '${value}'`, (err, res) => {
-        if (err) {
-            result(err, null);
-            return;
-        }
-        if (res.length) {
-            result(null, res[0]);
-            return;
-        }
-        result({ kind: "not_found" }, null);
-    });
-};
+// Image.findOne = (filed, value, result) => {
+//     sql.query(`SELECT * FROM images WHERE  ${filed} = '${value}'`, (err, res) => {
+//         if (err) {
+//             result(err, null);
+//             return;
+//         }
+//         if (res.length) {
+//             result(null, res[0]);
+//             return;
+//         }
+//         result({ kind: "not_found" }, null);
+//     });
+// };
 
 Image.getAll = result => {
     sql.query("SELECT * FROM images", (err, res) => {
@@ -41,11 +41,34 @@ Image.getAll = result => {
         result(null, res);
     });
 };
+Image.GetByRoomType = (RoomType, result) => {
+    sql.query("SELECT * FROM images  WHERE RoomType = ? ", RoomType, (err, res) => {
+        if (err) {
+            result(null, err);
+            return;
+        }
+        result(null, res);
+    });
+};
 
-Image.updateByRoomType = (type, image, result) => {
+Image.getById = (id, result) => {
+    sql.query("SELECT * FROM images  WHERE idImage = ? ", id, (err, res) => {
+        if (err) {
+            result(null, err);
+            return;
+        }
+        if (res.length) {
+            result(null, res[0]);
+            return;
+        }
+        result({ kind: "not_found" }, null);
+    });
+};
+
+Image.updateById = (id, image, result) => {
     sql.query(
-        "UPDATE images SET RoomType = ?, image1 = ?,  image2= ? ,image3= ?,image4= ?WHERE imageId = ?",
-        [image.RoomType, image.image1, image.image2, image.image3, image.image4, type],
+        "UPDATE images SET RoomType = ?,Path = ? WHERE idImage = ?",
+        [image.RoomType, image.Path, id],
         (err, res) => {
             if (err) {
                 result(null, err);
@@ -60,8 +83,24 @@ Image.updateByRoomType = (type, image, result) => {
     );
 };
 
-Image.remove = (roomType, result) => {
-    sql.query("DELETE FROM images WHERE RoomType = ?", roomType, (err, res) => {
+Image.removeById = (id, result) => {
+    sql.query("DELETE FROM images WHERE idImage = ?", id, (err, res) => {
+        if (err) {
+            console.log("error: ", err);
+            result(null, err);
+            return;
+        }
+        if (res.affectedRows == 0) {
+            // not found image with the id
+            result({ kind: "not_found" }, null);
+            return;
+        }
+        result(null, res);
+    });
+};
+
+Image.removeByRoomType = (RoomType, result) => {
+    sql.query("DELETE FROM images WHERE RoomType = ?", RoomType, (err, res) => {
         if (err) {
             console.log("error: ", err);
             result(null, err);

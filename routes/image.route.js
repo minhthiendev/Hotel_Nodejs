@@ -18,6 +18,13 @@ const upload = multer({
 
 
 
-router.post('/upload', upload.array('images'), img_ctrl.Create)
-router.get('/images', img_ctrl.findAll)
+router.post('/images/upload', upload.array('images'), img_ctrl.Create)
+router.route('/images')
+    .get(img_ctrl.findAll)
+    .delete(img_ctrl.Remove)
+router.route('/images/:id')
+    .get(img_ctrl.GetById)
+    .post(upload.single('image'), img_ctrl.Update)
+    .delete(img_ctrl.RemoveById)
+router.get('/images/getImage/:roomType', img_ctrl.GetByRoomType)
 module.exports = router;

@@ -1,7 +1,7 @@
 module.exports = {
     SERVER_ERROR: (err, res) => {
         return res.status(500).send({
-            message: err.message || "Some error occurred."
+            message: err.message || "Some error look like Not Found",
         });
     },
     SUCCESS: { code: "SUCCESS", message: "Success" },

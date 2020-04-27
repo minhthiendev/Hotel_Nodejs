@@ -23,7 +23,7 @@ exports.Create = async (req, res) => {
                 fs.renameSync(file.path, file.path + ext)
                 const newImage = new Image({
                     RoomType: req.body.RoomType,
-                    Path: file.filename
+                    Path: file.filename + ext
                 })
                 await Image.create(newImage, (err, img) => {
                     if (err) {
@@ -45,17 +45,41 @@ exports.Create = async (req, res) => {
 };
 
 exports.Update = async (req, res) => {
-    const image = new Image(req.body);
-    await Image.updateByRoomType(req.params.roomType, image, (err, data) => {
-        if (err)
-            return message.SERVER_ERROR(err, res)
-        if (data)
-            return res.send({ message: "success", 'newData': data });
-    })
-};
-
-exports.Remove = async (req, res) => {
-    await Image.remove(req.params.roomType, (err, raw) => {
+    if (req.file) {
+        const ext = '.' + req.file.originalname.split('.')[1];
+        fs.renameSync(req.file.path, req.file.path + ext)
+        const newImage = new Image({
+            RoomType: req.body.RoomType,
+            Path: req.file.filename + ext
+        })
+        await Image.updateById(req.params.id, newImage, (err, data) => {
+            if (err)
+                return message.SERVER_ERROR(err, res)
+            if (data)
+                return res.send({ message: "success", 'newData': data });
+        })
+    } else {
+        Image.getById(req.params.id, (err, img) => {
+            if (err) {
+                return message.SERVER_ERROR(err, res)
+            }
+            else {
+                const newImage = new Image({
+                    RoomType: req.body.RoomType,
+                    Path: img.Path
+                })
+                Image.updateById(req.params.id, newImage, (err, data) => {
+                    if (err)
+                        return message.SERVER_ERROR(err, res)
+                    if (data)
+                        return res.send({ message: "success", 'newData': data });
+                })
+            }
+        })
+    }
+}
+exports.RemoveById = async (req, res) => {
+    await Image.removeById(req.params.id, (err, raw) => {
         if (err)
             message.SERVER_ERROR(err, res)
         if (raw) return res.send({ message: "success", 'raw': raw });
@@ -63,14 +87,35 @@ exports.Remove = async (req, res) => {
     })
 };
 
+
 exports.GetById = async (req, res) => {
-    await Image.findOne("RoomType", req.params.roomType, (err, data) => {
+    await Image.getById(req.params.id, (err, data) => {
         if (err)
             message.SERVER_ERROR(err, res)
         if (data)
             return res.send({ message: "success", 'data': data });
     })
 };
+
+exports.GetByRoomType = async (req, res) => {
+    await Image.GetByRoomType(req.params.roomType, (err, data) => {
+        if (err)
+            message.SERVER_ERROR(err, res)
+        if (data)
+            return res.send({ message: "success", 'data': data });
+    })
+};
+
+exports.Remove = async (req, res) => {
+    await Image.removeAll((err, data) => {
+        if (err)
+            message.SERVER_ERROR(err, res)
+        if (data)
+            return res.send({ message: "success", 'data': data });
+    })
+};
+
+
 
 
 
