@@ -42,12 +42,26 @@ exports.Create = async (req, res) => {
 };
 
 exports.Update = async (req, res) => {
-    const reservation = new Reservation(req.body);
-    await Reservation.updateById(req.params.id, reservation, (err, data) => {
-        if (err)
-            return message.SERVER_ERROR(err, res)
-        if (data)
-            return res.send({ message: "success", 'newData': data });
+    await Room.getEmptyRoom(req.body.start, req.body.end, async (err, rooms) => {
+        if (rooms != []) {
+            const ro = rooms.find(x => x.RoomType == req.body.RoomType)
+            const newReservation = {
+                CustomerId: req.user.CustomerId,
+                ExpectedRoom: ro.RoomId,
+                ExpectedCheckIn: req.body.start,
+                ExpectedCheckOut: req.body.end,
+                ReservationStatus: 'waiting'
+            }
+            const reservation = new Reservation(newReservation);
+            await Reservation.updateById(req.params.id, reservation, (err, data) => {
+                if (err)
+                    return message.SERVER_ERROR(err, res)
+                if (data)
+                    return res.send({ message: "success", 'newData': data });
+            })
+        } else {
+            return res.send({ message: `not empty room from ${req.body.start} to ${req.body.end}` });
+        }
     })
 };
 
